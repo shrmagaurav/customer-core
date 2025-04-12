@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.learning.ecommerce";
+
+import "google/protobuf/empty.proto";
+
+// My employee service definition.
+service MyService {
+
+  rpc createEmployeeRequest (createEmployee) returns (entity);
+
+  rpc getAllEmployeesRequest (google.protobuf.Empty) returns (allEmployeesDetails);
+
+  rpc getEmployeeById (getSingleEmployee) returns (entity);
+
+  rpc deleteEmployeeById (deleteEmployee) returns (entity);
+
+  rpc updateEmployeeById (updateEmployee) returns (entity);
+
+}
+
+
+// The request message containing the needed information to create employee
+message createEmployee {
+  string firstName = 1;
+  string lastName = 2;
+  string email = 3;
+  string phoneNo = 4;
+  int64 hireDate = 5;
+  double salary = 6;
+  string department = 7;
+}
+
+// The response message containing the created employee entity
+message entity {
+  int32 Employee_Id = 1;
+  string name = 2;
+  string email = 3;
+  string phoneNo = 4;
+  string hireDate = 5;
+  double salary = 6;
+  string department = 7;
+}
+
+
+message allEmployeesDetails {
+  repeated entity data = 1;
+}
+
+message getSingleEmployee {
+  int32 id = 1;
+}
+
+
+message deleteEmployee{
+  int32 id = 1;
+}
+
+
+message updateEmployee{
+  int32 id = 1;
+  string phoneNo = 4;
+  double salary = 6;
+  string department = 7;
+}
