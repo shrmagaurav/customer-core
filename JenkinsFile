@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "gauravsharma/customer-core"  // 🔁 CHANGE this per service
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/shrmagaurav/customer-core.git'  // 🔁 CHANGE this
+            }
+        }
+
+        stage('Build Application') {
+            steps {
+                sh './gradlew clean build'  // 🔁 Use `mvn clean package` if using Maven
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def GIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    sh "docker build -t $IMAGE_NAME:$GIT_HASH ."
+                    sh "docker tag $IMAGE_NAME:$GIT_HASH $IMAGE_NAME:latest"
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+                    sh "docker push $IMAGE_NAME:$GIT_HASH"
+                    sh "docker push $IMAGE_NAME:latest"
+                }
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                sh 'kubectl apply -f k8s/deployment.yaml'
+            }
+        }
+    }
+}
